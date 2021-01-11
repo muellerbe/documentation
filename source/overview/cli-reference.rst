@@ -24,6 +24,9 @@ container manager_osism-ansible_1
    --limit ANSIBLE_INVENTORY_NAME
        limits the action to ANSIBLE_INVENTORY_NAME
 
+   osism-ansible generic all -m shell -a 'chronyc tracking'
+   osism-ansible generic all -m setup -l server1
+
 osism-ceph
 ==========
 
@@ -37,14 +40,18 @@ container manager_ceph-ansible_1
        [osds]
        [--limit ANSIBLE_INVENTORY_NAME | -l ANSIBLE_INVENTORY_NAME]
 
-   mons
-      deploys ceph monitoring
    mgrs
       deploys ceph manager
+   mons
+      deploys ceph monitoring
    osds
       deployes ceph osd
    --limit ANSIBLE_INVENTORY_NAME
       limits the actions to ANSIBLE_INVENTORY_NAME
+
+   osism-ceph mons
+   osism-ceph mgrs
+   osism-ceph osds -l server1,server2
 
 osism-generic
 =============
@@ -54,71 +61,100 @@ container manager_osism-ansible_1
 .. code-block:: console
 
    osism-generic
+       [backup-mariadb]
+       [bootstrap]
+       [check-reboot]
+       [cleanup-backup-mariadb]
+       [cleanup-docker]
+       [cleanup-elasticsearch]
+       [cleanup-sosreport]
+       [cockpit]
        [configuration]
-       [hosts]
+       [docker]
        [facts]
-       [ping]
+       [hardening]
+       [hosts]
+       [network]
        [operator]
+       [ping]
+       [python]
+       [reboot]
+       [repository]
+       [resolvconf]
+       [sosreport]
+       [timezone]
+       [upgrade-packages]
        [--user USER | -u USER]
        [--key-file /path/to/id_rsa]
        [--ask-pass]
        [--ask-become-pass]
        [--become]
-       [bootstrap]
-       [repository]
-       [docker]
-       [network]
-       [backup-mariadb]
-       [cleanup-backup-mariadb]
-       [upgrade-packages]
-       [check-reboot]
-       [reboot]
-       [resolvconf]
-       [hardening]
        [--limit ANSIBLE_INVENTORY_NAME | -l ANSIBLE_INVENTORY_NAME]
 
+   backup-mariadb
+       mariadb backup
+   bootstrap
+       bootstrap
+   check-reboot
+       check if reboot is necessary
+   cleanup-backup-mariadb
+       cleanup backups
+   cleanup-docker
+       cleanup docker
+   cleanup-elasticsearch
+       cleanup elasticsearch
+   cleanup-sosreport
+       cleanup sos reports
+   cockpit
+       cockpit role
    configuration
        get the latest git data for osism
-   hosts
-       update /etc/hosts
+   docker
+       install/update/configure docker daemon
    facts
        update the facts
-   ping
-       connection test via ansible
+   hardening
+       hardening role
+   hosts
+       update /etc/hosts
+   network
+       configure network
    operator
        login via key and configure dragon user
        in combination with --user, --key-file and --limit or
        --ask-pass, --ask-become-pass and --become
-   --user USER
-       argument for remote user
-   --key-file /path/to/id_rsa
-       argument for keyfile to login via remote user
-   --ask-pass
-       argument for asking the login password
-   --ask-become-pass
-       argument for asking the become pass
-   --become
-       argument for using the become method, e.g. sudo
-   bootstrap
-       bootstrap
-   repository
-       add repositories
-   docker
-       install/update/configure docker daemon
-   network
-       configure network
-   backup-mariadb, cleanup-backup-mariadb
-       mariadb backup and cleanup backups
-   upgrade-packages
-       upgrade the repository packages, the playbook asks are you sure
-   check-reboot
-       check if reboot is necessary
+       --user USER
+           argument for remote user
+       --key-file /path/to/id_rsa
+           argument for keyfile to login via remote user
+       --ask-pass
+           argument for asking the login password
+       --ask-become-pass
+           argument for asking the become pass
+       --become
+           argument for using the become method, e.g. sudo
+   ping
+       connection test via ansible
+   python
+       install python on server
    reboot
        reboot, the playbook asks are you sure
+   repository
+       add repositories
    resolvconf
        update DNS
-   hardening
-       hardening role
+   sosreport
+       create sosreports
+   timezone
+       configure timezone
+   upgrade-packages
+       upgrade the repository packages, the playbook asks are you sure
+
+   osism-generic configuration
+   osism-generic hosts -l server1,server2
+   osism-generic operator -l server1 -u root --key-file /path/to/keyfile
+   osism-generic operator -l server1 -u ubuntu --ask-pass --ask-become-pass
+   osism-generic python --limit server1 -u ubuntu --ask-pass --ask-become-pass
 
 osism-infrastucture
 ===================
@@ -134,17 +170,20 @@ container manager_osism-ansible_1
        [mirror-images]
        [mirror-packages]
        [--tags HELPER_TAG]
+       [--limit ANSIBLE_INVENTORY_NAME | -l ANSIBLE_INVENTORY_NAME]
 
-   helper
-       deploy helper like cephclient, openstackclient, phpmyadmin, rally, sshconfig, adminer
    cobbler
        deploy/configure/update cobbler
+   helper
+       deploy helper like cephclient, openstackclient, phpmyadmin, rally, sshconfig, adminer
    mirror
        deploy aptly, nexus, registry
    mirror-images
        mirror images
    mirror-packages
        create aptly mirror
+
+   osism-infrastructure helper --tags cephclient
 
 osism-kolla
 ===========
@@ -158,6 +197,7 @@ container manager_kolla-ansible_1
        [pull SERVICE]
        [reconfigure SERVICE]
        [upgrade SERVICE]
+       [--limit ANSIBLE_INVENTORY_NAME | -l ANSIBLE_INVENTORY_NAME]
 
    deploy
        deploy SERVICE like common, keystone, nova, neutron
@@ -167,6 +207,11 @@ container manager_kolla-ansible_1
        reconfigure SERVICE, e.g. configuration change
    upgrade
        upgrade SERVICE, e.g. Rocky -> Stein
+
+   osism-kolla deploy common
+   osism-kolla pull nova
+   osism-kolla reconfigure neutron -l server1
+   osism-kolla upgrade nova
 
 osism-manager
 =============
@@ -181,8 +226,9 @@ script using environment /opt/configuration/environments/manager/
    manager
        deploy/update manager, twice vault pw
    prefix
-       please use environment variables for Ansible configuration like ANSIBLE_ASK_VAULT_PASS=True,
-       e.g. ANSIBLE_ASK_VAULT_PASS=True osism-manager manager
+       please use environment variables for Ansible configuration like ANSIBLE_ASK_VAULT_PASS=True
+
+   ANSIBLE_ASK_VAULT_PASS=True osism-manager manager
 
 osism-mirror
 ============
